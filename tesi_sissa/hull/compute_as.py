@@ -7,22 +7,21 @@ import numpy as np
 from tqdm import trange
 np.random.seed(0)
 from athena.active import ActiveSubspaces
+import GPy
+NUM_SAMPLES=100
+NUM_TRAIN_SAMPLES=75
+parameters=np.load("latent_variables/data_latent.npy").reshape(600,-1)[:NUM_SAMPLES]
+snapshot_1=np.load("physical_quantities/mean_velocity_magnitude_data.npy").reshape(NUM_SAMPLES,-1)
+d=parameters.shape[1]
 
-NUM_SAMPLES=300
-NUM_TRAIN_SAMPLES=250
-parameters=np.load("data/dffd_latent.npy").reshape(600,-1)[:300,]
-snapshot_1=np.load("simulations/data/energy_data.npy").reshape(NUM_SAMPLES,-1)
+k=GPy.kern.RBF(d,ARD=True,variance=1)
+model=GPy.models.GPRegression(parameters,snapshot_1,k,normalizer=True)
+model.optimize_restarts(10)
+jacobian=model.predict_jacobian(parameters)[0].reshape(NUM_SAMPLES,-1)
 
-train_index=np.random.choice(NUM_SAMPLES, NUM_TRAIN_SAMPLES, replace=False)
-test_index=np.setdiff1d(np.arange(NUM_SAMPLES),train_index)
+asub_1 = ActiveSubspaces(dim=5,method='exact')
 
-asub_1 = ActiveSubspaces(dim=5,method='local')
-
-asub_1.fit(parameters,snapshot_1)
+asub_1.fit(parameters,gradients=jacobian)
 parameters_1=asub_1.transform(parameters)[0]
 
-np.save("nn/inference_objects/AS_latent.npy",parameters_1)
-
-
-
-
+np.save("latent_variables/AS_latent.npy",parameters_1)

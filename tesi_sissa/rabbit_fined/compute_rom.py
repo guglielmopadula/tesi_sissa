@@ -11,22 +11,19 @@ names=["VAE",
        "AAE",
        "AE",
        "BEGAN",
-       "DM",
-       "EBM",
-       "NF",
        "AS",
        "data"
        ]
 
-NUM_SAMPLES=300
-NUM_TRAIN_SAMPLES=250
+NUM_SAMPLES=200
+NUM_TRAIN_SAMPLES=150
 for name in names:
     np.random.seed(0)
-    parameters=np.load("latent_variables/"+name+"_latent.npy").reshape(NUM_SAMPLES,-1)
-    snapshot_1=np.load("physical_quantities/energy_"+name+".npy").reshape(NUM_SAMPLES,-1)
+    parameters=np.load("latent_variables/"+name+"_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
+    snapshot_1=np.load("physical_quantities/energy_surf_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
 
     l=[]
-    for i in range(300):
+    for i in range(NUM_SAMPLES):
         if np.sum(np.isnan(snapshot_1[i]))<1:
             l.append(i)
 

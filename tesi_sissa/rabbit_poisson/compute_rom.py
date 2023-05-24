@@ -22,8 +22,8 @@ NUM_SAMPLES=300
 NUM_TRAIN_SAMPLES=250
 for name in names:
     np.random.seed(0)
-    parameters=np.load("latent_variables/"+name+"_latent.npy").reshape(NUM_SAMPLES,-1)
-    snapshot_1=np.load("physical_quantities/energy_"+name+".npy").reshape(NUM_SAMPLES,-1)
+    parameters=np.load("latent_variables/"+name+"_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
+    snapshot_1=np.load("physical_quantities/energy_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
 
     l=[]
     for i in range(300):
