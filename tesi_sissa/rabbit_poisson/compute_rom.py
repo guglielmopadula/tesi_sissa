@@ -54,15 +54,13 @@ for name in names:
     podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 5000))
 
     approximations = {
-        'RBF': RBF(),
         'GPR': GPR(),
-        'KNeighbors': KNeighborsRegressor(),
         'ANN': ANN([2000, 2000], nn.Tanh(), 1000,l2_regularization=0.03,lr=0.001),
     }
 
 
-    train_error=np.zeros((1,4))
-    test_error=np.zeros((1,4))
+    train_error=np.zeros((1,2))
+    test_error=np.zeros((1,2))
 
     for approxname, approxclass in approximations.items():
         j=list(approximations.keys()).index(approxname)

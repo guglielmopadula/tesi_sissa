@@ -9,20 +9,21 @@ np.random.seed(0)
 
 
 names=["VAE",
-       "AAE",
-       "AE",
-       "BEGAN",
-       "AS",
-       "data"
+       #"AAE",
+       #"AE",
+       #"BEGAN",
+       #"AS",
+       #"data"
        ]
 
 NUM_SAMPLES=100
 NUM_TRAIN_SAMPLES=90
+NUM_TEST=10
 for name in names:
     np.random.seed(0)
     parameters=np.load("latent_variables/"+name+"_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
-    snapshot_1=np.load("physical_quantities/mean_square_pressure_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
-    snapshot_2=np.load("physical_quantities/mean_velocity_magnitude_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
+    snapshot_1=np.load("physical_quantities/podded_p_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
+    snapshot_2=np.load("physical_quantities/podded_u_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
 
     l=[]
     for i in range(NUM_SAMPLES):
@@ -48,19 +49,16 @@ for name in names:
     db1=Database(parameters,snapshot_1)
     db2=Database(parameters,snapshot_2)
 
-    db_t={"mean_square_pressure": db1, "mean_velocity_magnitude":db2}
+    db_t={"p": db1, "u":db2}
 
-    train={"mean_square_pressure":[parameters_train,snapshot_1_train],"mean_velocity_magnitude":[parameters_train,snapshot_2_train] }
-    test={"mean_square_pressure":[parameters_test,snapshot_1_test], "mean_velocity_magnitude":[parameters_test,snapshot_2_test] }
+    train={"p":[parameters_train,snapshot_1_train],"u":[parameters_train,snapshot_2_train] }
+    test={"p":[parameters_test,snapshot_1_test], "u":[parameters_test,snapshot_2_test] }
 
 
-    podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 5000))
 
     approximations = {
         'GPR': GPR(),
-    #    'KNeighbors': KNeighborsRegressor(),
-    #    'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.1),
-    #s    'RBF': RBF(),
+        'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=500),
     }
 
 
@@ -68,33 +66,35 @@ for name in names:
     test_error=np.zeros((2,4))
 
     for approxname, approxclass in approximations.items():
+        podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 50000, lr=0.001))
         j=list(approximations.keys()).index(approxname)
-        approxclass.fit(train["mean_square_pressure"][0],train["mean_square_pressure"][1],kern=ConstantKernel()*RBFKernel())
-        train_error[0,j]=np.linalg.norm(approxclass.predict(train["mean_square_pressure"][0]).reshape(-1,1)-train["mean_square_pressure"][1])/np.linalg.norm(train["mean_square_pressure"][1])
-        test_error[0,j]=np.linalg.norm(approxclass.predict(test["mean_square_pressure"][0]).reshape(-1,1)-test["mean_square_pressure"][1])/np.linalg.norm(test["mean_square_pressure"][1])
+        rom = ReducedOrderModel(db_t["p"], podae, approxclass)
+        rom.fit()
+        train_error[0,j]=np.linalg.norm(rom.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1])/np.linalg.norm(train["p"][1])
+        test_error[0,j]=np.linalg.norm(rom.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1])/np.linalg.norm(test["p"][1])
    
+    
     approximations = {
         'GPR': GPR(),
-       # 'KNeighbors': KNeighborsRegressor(),
-       # 'ANN': ANN([2000, 2000], nn.Tanh(), 1000,l2_regularization=0.03,lr=0.001),
-       # 'RBF': RBF(),
+        'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=500),
     }
 
 
     for approxname, approxclass in approximations.items():
+        podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 50000, lr=0.001))
         j=list(approximations.keys()).index(approxname)
-        approxclass.fit(train["mean_velocity_magnitude"][0],train["mean_velocity_magnitude"][1])
-        train_error[1,j]=np.linalg.norm(approxclass.predict(train["mean_velocity_magnitude"][0]).reshape(-1,1)-train["mean_velocity_magnitude"][1])/np.linalg.norm(train["mean_velocity_magnitude"][1])
-        test_error[1,j]=np.linalg.norm(approxclass.predict(test["mean_velocity_magnitude"][0]).reshape(-1,1)-test["mean_velocity_magnitude"][1])/np.linalg.norm(test["mean_velocity_magnitude"][1])
+        rom = ReducedOrderModel(db_t["u"], podae, approxclass)
+        rom.fit()
+        train_error[1,j]=np.linalg.norm(rom.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1])/np.linalg.norm(train["u"][1])
+        test_error[1,j]=np.linalg.norm(rom.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1])/np.linalg.norm(test["u"][1])
 
 
 
     approximations=list(approximations.keys())
     db_t=list(db_t.keys())
-    #f = open("./rom/graphs_txt/"+name+"_.txt", "a")
-    for i in range(1):
+    for i in range(2):
         for j in range(len(approximations)):
-            #print("Training error of "+str(approximations[j])+" over " + str(db_t[i]) +" is "+str(train_error[i,j]))
+            print("Training error of "+str(approximations[j])+" over " + str(db_t[i]) +" is "+str(train_error[i,j]))
             print("Test error of "+str(approximations[j])+" over " + str(db_t[i]) +" is "+str(test_error[i,j]))
 
     np.save("./rom_quantities/"+name+"_rom_err_train.npy",train_error)

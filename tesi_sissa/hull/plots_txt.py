@@ -22,10 +22,7 @@ names=["AE","VAE","AAE","BEGAN"]
 db_t=["u","energy"]
 approximations =  [
     'GPR',
-  #  'KNeighbors',
-  #  'ANN',
-  #  'RBF'
-
+    'ANN',
 ]
 
 plt.rcParams.update({
@@ -39,14 +36,14 @@ var_tot=np.zeros(5)
 mmd_tensor_tot=np.zeros(4)
 mmd_area_tot=np.zeros(4)
 rec_error_tot=np.zeros(4)
-mmd_u_tot=np.zeros(4)
-mmd_p_tot=np.zeros(4)
+mmd_drag_tot=np.zeros(4)
+mmd_momz_tot=np.zeros(4)
 
-train_u_tot=np.zeros((6,4))
-test_u_tot=np.zeros((6,4))
+train_u_tot=np.zeros((6,2))
+test_u_tot=np.zeros((6,2))
 
-train_p_tot=np.zeros((6,4))
-test_p_tot=np.zeros((6,4))
+train_p_tot=np.zeros((6,2))
+test_p_tot=np.zeros((6,2))
 
 
 for i in range(len(names)):
@@ -58,10 +55,10 @@ for i in range(len(names)):
     area_data=np.load("geometrical_quantities/area_data.npy")
     area_sampled=np.load("geometrical_quantities/area_"+name+".npy")
     error=np.load("nn_quantities/rel_error_"+name+".npy")
-    u_data=np.load("physical_quantities/mean_velocity_magnitude_data.npy").reshape(-1)
-    u_sampled=np.load("physical_quantities/mean_velocity_magnitude_"+name+".npy").reshape(-1)
-    p_data=np.load("physical_quantities/mean_square_pressure_data.npy").reshape(-1)
-    p_sampled=np.load("physical_quantities/mean_square_pressure_"+name+".npy").reshape(-1)
+    drag_data=np.load("physical_quantities/drag_data.npy").reshape(-1)
+    drag_sampled=np.load("physical_quantities/drag_"+name+".npy").reshape(-1)
+    momz_data=np.load("physical_quantities/momz_data.npy").reshape(-1)
+    momz_sampled=np.load("physical_quantities/momz_"+name+".npy").reshape(-1)
 
     train_error_rom_sampled=np.load("./rom_quantities/"+name+"_rom_err_train.npy")
     test_error_rom_sampled=np.load("./rom_quantities/"+name+"_rom_err_test.npy")
@@ -74,8 +71,8 @@ for i in range(len(names)):
     mmd_tensor_tot[i]=mmd(moment_tensor_data.reshape(-1,np.prod(moment_tensor_data.shape[1:])),moment_tensor_sampled.reshape(-1,np.prod(moment_tensor_data.shape[1:])))
     var_tot[i+1]=variance.item()
     rec_error_tot[i]=error.item()
-    mmd_u_tot[i]=mmd(u_data,u_sampled)
-    mmd_u_tot[i]=mmd(u_data,u_sampled)
+    mmd_drag_tot[i]=mmd(drag_data,drag_sampled)
+    mmd_momz_tot[i]=mmd(momz_data,momz_sampled)
 
     mmd_area_tot[i]=mmd(area_data,area_sampled)
     for j in range(len(approximations)):
@@ -96,17 +93,17 @@ for i in range(len(names)):
     ax2.set_title("Area of "+name)
     _=ax2.hist([area_data,area_sampled],8,label=['real','sampled'])
     ax2.legend()
-    fig2.savefig("./plots/Area_hist_"+name+".pdf")
+    fig2.savefig("./plots/Area_hist_"+name+"_hull.pdf")
     fig2,ax2=plt.subplots()
-    ax2.set_title("Mean Square Pressure of "+name)
-    _=ax2.hist([p_data,p_sampled],8,label=['real','sampled'])
+    ax2.set_title("Drag of "+name)
+    _=ax2.hist([drag_data,drag_sampled],8,label=['real','sampled'])
     ax2.legend()
-    fig2.savefig("./plots/Pressure_hist_"+name+".pdf")
+    fig2.savefig("./plots/Drag_hist_"+name+"_hull.pdf")
     fig2,ax2=plt.subplots()
-    ax2.set_title("Mean Velocity Magnitude Pressure of "+name)
-    _=ax2.hist([u_data,u_sampled],8,label=['real','sampled'])
+    ax2.set_title("Z angular moment of "+name)
+    _=ax2.hist([momz_data,momz_sampled],8,label=['real','sampled'])
     ax2.legend()
-    fig2.savefig("./plots/Velocity_hist_"+name+".pdf")
+    fig2.savefig("./plots/Momz_hist_"+name+"_hull.pdf")
 
 
 
@@ -126,26 +123,26 @@ plt.rcParams.update({
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between moment tensor of data and of GM")
 ax2.plot(names,mmd_tensor_tot)
-fig2.savefig("./plots/Moment.pdf")
+fig2.savefig("./plots/Moment_hull.pdf")
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between area of data and of GM")
 ax2.plot(names,mmd_area_tot)
-fig2.savefig("./plots/Area.pdf")
+fig2.savefig("./plots/Area_hull.pdf")
 #Physical quantities
 fig2,ax2=plt.subplots()
-ax2.set_title("MMD between mean square pressure of data and of GM")
-ax2.plot(names,mmd_p_tot)
-fig2.savefig("./plots/Pressure.pdf")
+ax2.set_title("MMD between drag of data and of GM")
+ax2.plot(names,mmd_drag_tot)
+fig2.savefig("./plots/Drag_hull.pdf")
 fig2,ax2=plt.subplots()
-ax2.set_title("MMD between mean velocity magnitude of data and of GM")
-ax2.plot(names,mmd_u_tot)
-fig2.savefig("./plots/Velocity.pdf")
+ax2.set_title("MMD between z angular moment of data and of GM")
+ax2.plot(names,mmd_momz_tot)
+fig2.savefig("./plots/Momz_hull.pdf")
 
 fig2,ax2=plt.subplots()
 fig2,ax2=plt.subplots()
 ax2.set_title("Rec error between data and GM")
 ax2.plot(names,rec_error_tot)
-fig2.savefig("./plots/rec.pdf")
+fig2.savefig("./plots/rec_hull.pdf")
 styles=['bo','gv','r.','y,']
 
 
@@ -155,7 +152,7 @@ styles=['bo','gv','r.','y,']
 fig2,ax2=plt.subplots()
 ax2.set_title("Variance")
 ax2.plot(["data"]+names,var_tot)
-fig2.savefig("./plots/var.pdf")
+fig2.savefig("./plots/var_hull.pdf")
 
 
 plt.rcParams.update({
@@ -169,68 +166,48 @@ plt.rcParams.update({
 names=["AE","VAE","AAE","BEGAN","AS"]
 
 fig2,ax2=plt.subplots()
-ax2.set_title("ROM mean square pressure train error")
+ax2.set_title("ROM pressure train error")
 
 
 
 for j in range(len(approximations)):
-    if approximations[j]=="RBF":
-        y_lim=ax2.get_ylim()
-        ax2.plot(["data"]+names,train_p_tot[:,j],label=approximations[j])
-        ax2.set_ylim(y_lim)
-    else:
-        ax2.plot(["data"]+names,train_p_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_p_tot[:,j],label=approximations[j])
 
     
 ax2.legend()
-fig2.savefig("./plots/train_pressure.pdf")
+fig2.savefig("./plots/train_pressure_hull.pdf")
 
 
 fig2,ax2=plt.subplots()
-ax2.set_title("ROM mean square pressure test error")
+ax2.set_title("ROM pressure test error")
 
 for j in range(len(approximations)):
-    if approximations[j]=="RBF":
-        y_lim=ax2.get_ylim()
-        ax2.plot(["data"]+names,test_p_tot[:,j],label=approximations[j])
-        ax2.set_ylim(y_lim)
-    else:
-        ax2.plot(["data"]+names,test_p_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_p_tot[:,j],label=approximations[j])
 
     
 ax2.legend()
-fig2.savefig("./plots/test_pressure.pdf")
+fig2.savefig("./plots/test_pressure_hull.pdf")
 
 fig2,ax2=plt.subplots()
-ax2.set_title("ROM mean velocity magnitude train error")
+ax2.set_title("ROM velocity magnitude train error")
 
 
 
 for j in range(len(approximations)):
-    if approximations[j]=="RBF":
-        y_lim=ax2.get_ylim()
-        ax2.plot(["data"]+names,train_u_tot[:,j],label=approximations[j])
-        ax2.set_ylim(y_lim)
-    else:
-        ax2.plot(["data"]+names,train_u_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j])
 
     
 ax2.legend()
-fig2.savefig("./plots/train_velocity.pdf")
+fig2.savefig("./plots/train_velocity_hull.pdf")
 
 
 fig2,ax2=plt.subplots()
-ax2.set_title("ROM mean velocity magnitude test error")
+ax2.set_title("ROM velocity magnitude test error")
 
 for j in range(len(approximations)):
-    if approximations[j]=="RBF":
-        y_lim=ax2.get_ylim()
-        ax2.plot(["data"]+names,test_u_tot[:,j],label=approximations[j])
-        ax2.set_ylim(y_lim)
-    else:
-        ax2.plot(["data"]+names,test_u_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_u_tot[:,j],label=approximations[j])
 
     
     
 ax2.legend()
-fig2.savefig("./plots/test_velocity.pdf")
+fig2.savefig("./plots/test_velocity_hull.pdf")

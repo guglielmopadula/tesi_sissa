@@ -21,9 +21,7 @@ def mmd(X,Y):
 names=["AE","VAE","AAE","BEGAN","EBM","DM","NF"]
 db_t=["u","energy"]
 approximations =  [
-    'RBF',
     'GPR',
-    'KNeighbors',
     'ANN'
 ]
 
@@ -40,8 +38,8 @@ mmd_area_tot=np.zeros(7)
 rec_error_tot=np.zeros(7)
 mmd_energy_tot=np.zeros(7)
 
-train_energy_tot=np.zeros((9,4))
-test_energy_tot=np.zeros((9,4))
+train_energy_tot=np.zeros((9,2))
+test_energy_tot=np.zeros((9,2))
 
 
 
@@ -84,12 +82,12 @@ for i in range(len(names)):
     ax2.set_title("Area of "+name)
     _=ax2.hist([area_data,area_sampled],8,label=['real','sampled'])
     ax2.legend()
-    fig2.savefig("./plots/Area_hist_"+name+".pdf")
+    fig2.savefig("./plots/Area_hist_"+name+"_coarse.pdf")
     fig2,ax2=plt.subplots()
     ax2.set_title("Energy of "+name)
     _=ax2.hist([energy_data,energy_sampled],8,label=['real','sampled'])
     ax2.legend()
-    fig2.savefig("./plots/Energy_hist_"+name+".pdf")
+    fig2.savefig("./plots/Energy_hist_"+name+"_coarse.pdf")
 
 
 
@@ -108,21 +106,21 @@ plt.rcParams.update({
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between moment tensor of data and of GM")
 ax2.plot(names,mmd_tensor_tot)
-fig2.savefig("./plots/Moment.pdf")
+fig2.savefig("./plots/Moment_coarse.pdf")
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between area of data and of GM")
 ax2.plot(names,mmd_area_tot)
-fig2.savefig("./plots/Area.pdf")
+fig2.savefig("./plots/Area_coarse.pdf")
 #Physical quantities
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between energy of data and of GM")
 ax2.plot(names,mmd_energy_tot)
-fig2.savefig("./plots/Energy.pdf")
+fig2.savefig("./plots/Energy_coarse.pdf")
 fig2,ax2=plt.subplots()
 fig2,ax2=plt.subplots()
 ax2.set_title("Rec error between data and GM")
 ax2.plot(names,rec_error_tot)
-fig2.savefig("./plots/rec.pdf")
+fig2.savefig("./plots/rec_coarse.pdf")
 styles=['bo','gv','r.','y,']
 
 
@@ -132,7 +130,7 @@ styles=['bo','gv','r.','y,']
 fig2,ax2=plt.subplots()
 ax2.set_title("Variance")
 ax2.plot(["data"]+names,var_tot)
-fig2.savefig("./plots/var.pdf")
+fig2.savefig("./plots/var_coarse.pdf")
 
 
 plt.rcParams.update({
@@ -160,17 +158,17 @@ ax2.set_title("ROM energy train error")
 
 
 for j in range(len(approximations)):
-    ax2.plot(["data"]+names,train_energy_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j])
     
 ax2.legend()
-fig2.savefig("./plots/train_energy.pdf")
+fig2.savefig("./plots/train_energy_coarse.pdf")
 
 
 fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy test error")
 
 for j in range(len(approximations)):
-    ax2.plot(["data"]+names,test_energy_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_energy_tot[:,j],label=approximations[j])
     
 ax2.legend()
-fig2.savefig("./plots/test_energy.pdf")
+fig2.savefig("./plots/test_energy_coarse.pdf")
