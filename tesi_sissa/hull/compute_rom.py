@@ -58,30 +58,30 @@ for name in names:
 
     approximations = {
         'GPR': GPR(),
-        'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=500),
+        'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
     }
 
 
-    train_error=np.zeros((2,4))
-    test_error=np.zeros((2,4))
-
+    train_error=np.zeros((2,2))
+    test_error=np.zeros((2,2))
+    
     for approxname, approxclass in approximations.items():
-        podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 50000, lr=0.001))
+        podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 50000, lr=0.001,frequency_print=10000))
         j=list(approximations.keys()).index(approxname)
         rom = ReducedOrderModel(db_t["p"], podae, approxclass)
         rom.fit()
         train_error[0,j]=np.linalg.norm(rom.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1])/np.linalg.norm(train["p"][1])
         test_error[0,j]=np.linalg.norm(rom.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1])/np.linalg.norm(test["p"][1])
-   
+       
     
     approximations = {
         'GPR': GPR(),
-        'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=500),
+        'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
     }
 
 
     for approxname, approxclass in approximations.items():
-        podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 50000, lr=0.001))
+        podae=PODAE(POD('svd'),AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 50000, lr=0.001,frequency_print=10000))
         j=list(approximations.keys()).index(approxname)
         rom = ReducedOrderModel(db_t["u"], podae, approxclass)
         rom.fit()
