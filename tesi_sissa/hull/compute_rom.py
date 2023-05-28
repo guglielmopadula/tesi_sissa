@@ -9,11 +9,11 @@ np.random.seed(0)
 
 
 names=["VAE",
-       #"AAE",
-       #"AE",
-       #"BEGAN",
-       #"AS",
-       #"data"
+       "AAE",
+       "AE",
+       "BEGAN",
+       "AS",
+       "data"
        ]
 
 NUM_SAMPLES=100

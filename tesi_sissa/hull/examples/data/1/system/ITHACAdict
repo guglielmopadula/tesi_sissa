@@ -1,0 +1,16 @@
+FoamFile
+{
+    version     5.0;
+    format      ascii;
+    class       dictionary;
+    object      ITHACAPODdict;
+}
+
+EigenSolver eigen;
+
+
+
+
+
+
+// ************************************************************************* //

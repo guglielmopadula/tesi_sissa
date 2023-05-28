@@ -34,7 +34,6 @@ plt.rcParams.update({
 
 var_tot=np.zeros(5)
 mmd_tensor_tot=np.zeros(4)
-mmd_area_tot=np.zeros(4)
 rec_error_tot=np.zeros(4)
 mmd_energy_tot=np.zeros(4)
 
@@ -101,9 +100,6 @@ ax2.set_title("MMD between moment tensor of data and of GM")
 ax2.plot(names,mmd_tensor_tot)
 fig2.savefig("./plots/Moment_fined.pdf")
 fig2,ax2=plt.subplots()
-ax2.set_title("MMD between area of data and of GM")
-ax2.plot(names,mmd_area_tot)
-fig2.savefig("./plots/Area_fined.pdf")
 #Physical quantities
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between energy on surface of data and of GM")
