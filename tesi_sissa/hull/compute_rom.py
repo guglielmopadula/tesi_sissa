@@ -17,8 +17,8 @@ names=["VAE",
        ]
 
 NUM_SAMPLES=100
-NUM_TRAIN_SAMPLES=90
-NUM_TEST=10
+NUM_TRAIN_SAMPLES=80
+NUM_TEST=20
 for name in names:
     np.random.seed(0)
     parameters=np.load("latent_variables/"+name+"_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
@@ -46,8 +46,8 @@ for name in names:
 
 
 
-    db1=Database(parameters,snapshot_1)
-    db2=Database(parameters,snapshot_2)
+    db1=Database(parameters_train,snapshot_1_train)
+    db2=Database(parameters_train,snapshot_2_train)
 
     db_t={"p": db1, "u":db2}
 
@@ -70,8 +70,8 @@ for name in names:
         j=list(approximations.keys()).index(approxname)
         rom = ReducedOrderModel(db_t["p"], podae, approxclass)
         rom.fit()
-        train_error[0,j]=np.linalg.norm(rom.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1])/np.linalg.norm(train["p"][1])
-        test_error[0,j]=np.linalg.norm(rom.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1])/np.linalg.norm(test["p"][1])
+        train_error[0,j]=np.linalg.norm(rom.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1])
+        test_error[0,j]=np.linalg.norm(rom.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1])
        
     
     approximations = {
@@ -85,9 +85,8 @@ for name in names:
         j=list(approximations.keys()).index(approxname)
         rom = ReducedOrderModel(db_t["u"], podae, approxclass)
         rom.fit()
-        train_error[1,j]=np.linalg.norm(rom.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1])/np.linalg.norm(train["u"][1])
-        test_error[1,j]=np.linalg.norm(rom.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1])/np.linalg.norm(test["u"][1])
-
+        train_error[1,j]=np.linalg.norm(rom.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1])
+        test_error[1,j]=np.linalg.norm(rom.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1])
 
 
     approximations=list(approximations.keys())
