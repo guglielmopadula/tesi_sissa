@@ -6,6 +6,7 @@ from sklearn.decomposition import PCA
 import numpy as np
 from tqdm import trange
 np.random.seed(0)
+from sklearn.preprocessing import StandardScaler
 
 names=["VAE",
        "AAE",
@@ -21,11 +22,11 @@ for name in names:
     np.random.seed(0)
     parameters=np.load("latent_variables/"+name+"_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
     snapshot_1=np.load("physical_quantities/energy_surf_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
-
     l=[]
     for i in range(NUM_SAMPLES):
         if np.sum(np.isnan(snapshot_1[i]))<1:
             l.append(i)
+
 
     parameters=parameters[l,:]  
     snapshot_1=snapshot_1[l,:]
