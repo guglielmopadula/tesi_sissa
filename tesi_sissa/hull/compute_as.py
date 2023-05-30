@@ -10,7 +10,6 @@ from athena.active import ActiveSubspaces
 import GPy
 from sklearn.utils.extmath import randomized_svd
 NUM_SAMPLES=100
-NUM_TRAIN_SAMPLES=75
 parameters=np.load("latent_variables/data_latent.npy").reshape(600,-1)[:NUM_SAMPLES]
 snapshot_1=np.load("physical_quantities/p_data.npy").reshape(NUM_SAMPLES,-1)
 
@@ -24,7 +23,7 @@ model=GPy.models.GPRegression(parameters,snapshot_1,k,normalizer=True)
 
 model.optimize_restarts(10)
 jacobian=model.predict_jacobian(parameters)[0].reshape(NUM_SAMPLES,100,86)
-asub_1 = ActiveSubspaces(dim=10,method='exact',n_boot=50)
+asub_1 = ActiveSubspaces(dim=1,method='exact',n_boot=50)
 
 asub_1.fit(parameters,gradients=jacobian)
 parameters_1=asub_1.transform(parameters)[0]
