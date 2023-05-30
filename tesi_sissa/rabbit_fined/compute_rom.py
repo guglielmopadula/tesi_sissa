@@ -63,8 +63,8 @@ for name in names:
     for approxname, approxclass in approximations.items():
         j=list(approximations.keys()).index(approxname)
         approxclass.fit(train["energy"][0],train["energy"][1])
-        train_error[0,j]=np.linalg.norm(approxclass.predict(train["energy"][0]).reshape(-1,1)-train["energy"][1])
-        test_error[0,j]=np.linalg.norm(approxclass.predict(test["energy"][0]).reshape(-1,1)-test["energy"][1])
+        train_error[0,j]=np.linalg.norm(approxclass.predict(train["energy"][0]).reshape(-1,1)-train["energy"][1])/np.linalg.norm(train["energy"][1])
+        test_error[0,j]=np.linalg.norm(approxclass.predict(test["energy"][0]).reshape(-1,1)-test["energy"][1])/np.linalg.norm(test["energy"][1])
 
 
 
