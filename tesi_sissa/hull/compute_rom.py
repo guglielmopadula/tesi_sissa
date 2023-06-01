@@ -58,12 +58,16 @@ parameters=parameters[l,:]
 snapshot_1=snapshot_1[l,:]
 snapshot_2=snapshot_2[l,:]
 
-U_1, S_1, V_1 = randomized_svd(snapshot_1, n_components=100, random_state=0, n_oversamples=1)
+n_modes=3
 
-R_1=V_1[:100]
+U_1, S_1, V_1 = randomized_svd(snapshot_1, n_components=n_modes, random_state=0, n_oversamples=1)
+
+R_1=V_1[:n_modes]
 snapshot_1=snapshot_1.dot(R_1.T)
-U_2, S_2, V_2 = randomized_svd(snapshot_2, n_components=100, random_state=0, n_oversamples=1)
-R_2=V_2[:100]
+
+
+U_2, S_2, V_2 = randomized_svd(snapshot_2, n_components=n_modes, random_state=0, n_oversamples=1)
+R_2=V_2[:n_modes]
 snapshot_2=snapshot_2.dot(R_2.T)
 
 print(snapshot_1.dtype)
@@ -102,12 +106,11 @@ test_error=np.zeros((2,2))
 
 for approxname, approxclass in approximations.items():
     loss=L2_torch(V,R_1)
-    podae=AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 1000, lr=0.1,frequency_print=100,loss=loss)
     j=list(approximations.keys()).index(approxname)
-    rom = ReducedOrderModel(db_t["p"], podae, approxclass)
-    rom.fit()
-    train_error[0,j]=np.mean(l2_norm(rom.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1],R_1,V)/l2_norm(train["p"][1],R_1,V))
-    test_error[0,j]=np.mean(l2_norm(rom.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1],R_1,V)/l2_norm(test["p"][1],R_1,V))
+    approxclass.fit(train["p"][0],train["p"][1])
+    train_error[0,j]=np.mean(l2_norm(approxclass.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1],R_1,V)/l2_norm(train["p"][1],R_1,V))
+    test_error[0,j]=np.mean(l2_norm(approxclass.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1],R_1,V)/l2_norm(test["p"][1],R_1,V))
+
     
 
 approximations = {
@@ -117,14 +120,12 @@ approximations = {
 
 
 for approxname, approxclass in approximations.items():
-    loss=L2_torch(V,R_2)
-    podae=AE([200, 100, 10], [10, 100, 200], nn.Tanh(), nn.Tanh(), 1000, lr=0.1,frequency_print=100,loss=loss)
+    approxclass.fit(train["u"][0],train["u"][1])
     j=list(approximations.keys()).index(approxname)
-    rom = ReducedOrderModel(db_t["u"], podae, approxclass)
-    rom.fit()
-    train_error[1,j]=np.mean(l2_norm(rom.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1],R_2,V)/l2_norm(train["u"][1],R_2,V))
-    test_error[1,j]=np.mean(l2_norm(rom.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1],R_2,V)/l2_norm(test["u"][1],R_2,V))
+    train_error[1,j]=np.mean(l2_norm(approxclass.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1],R_2,V)/l2_norm(train["u"][1],R_2,V))
+    test_error[1,j]=np.mean(l2_norm(approxclass.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1],R_2,V)/l2_norm(test["u"][1],R_2,V))
 
+ 
 
 approximations=list(approximations.keys())
 db_t=list(db_t.keys())
