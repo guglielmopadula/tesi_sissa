@@ -78,6 +78,7 @@ for i in range(len(names)):
     fig2,ax2=plt.subplots()
     ax2.set_title("Energy on surface of "+name)
     _=ax2.hist([energy_data,energy_sampled],8,label=['real','sampled'])
+    ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Energy_surf_hist_"+name+"_fined.pdf")
 
@@ -98,17 +99,20 @@ plt.rcParams.update({
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between moment tensor of data and of GM")
 ax2.plot(names,mmd_tensor_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/Moment_fined.pdf")
 fig2,ax2=plt.subplots()
 #Physical quantities
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between energy on surface of data and of GM")
 ax2.plot(names,mmd_energy_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/Energy_surf_fined.pdf")
 fig2,ax2=plt.subplots()
 fig2,ax2=plt.subplots()
 ax2.set_title("Rec error between data and GM")
 ax2.plot(names,rec_error_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/rec_fined.pdf")
 styles=['bo','gv','r.','y,']
 
@@ -119,6 +123,7 @@ styles=['bo','gv','r.','y,']
 fig2,ax2=plt.subplots()
 ax2.set_title("Variance")
 ax2.plot(["data"]+names,var_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/var_fined.pdf")
 
 
@@ -148,7 +153,7 @@ ax2.set_title("ROM energy on surf train error")
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j])
-    
+ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/train_energy_surf_fined.pdf")
 
@@ -158,6 +163,6 @@ ax2.set_title("ROM energy on surf test error")
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,test_energy_tot[:,j],label=approximations[j])
-    
+ax2.grid(True,which='both') 
 ax2.legend()
 fig2.savefig("./plots/test_energy_surf_fined.pdf")

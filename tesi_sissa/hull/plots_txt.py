@@ -92,16 +92,19 @@ for i in range(len(names)):
     fig2,ax2=plt.subplots()
     ax2.set_title("Area of "+name)
     _=ax2.hist([area_data,area_sampled],8,label=['real','sampled'])
+    ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Area_hist_"+name+"_hull.pdf")
     fig2,ax2=plt.subplots()
     ax2.set_title("Drag of "+name)
     _=ax2.hist([drag_data,drag_sampled],8,label=['real','sampled'])
+    ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Drag_hist_"+name+"_hull.pdf")
     fig2,ax2=plt.subplots()
     ax2.set_title("Z angular moment of "+name)
     _=ax2.hist([momz_data,momz_sampled],8,label=['real','sampled'])
+    ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Momz_hist_"+name+"_hull.pdf")
 
@@ -123,25 +126,31 @@ plt.rcParams.update({
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between moment tensor of data and of GM")
 ax2.plot(names,mmd_tensor_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/Moment_hull.pdf")
 fig2,ax2=plt.subplots()
+ax2.grid(True,which='both')
 ax2.set_title("MMD between area of data and of GM")
 ax2.plot(names,mmd_area_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/Area_hull.pdf")
 #Physical quantities
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between drag of data and of GM")
 ax2.plot(names,mmd_drag_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/Drag_hull.pdf")
 fig2,ax2=plt.subplots()
 ax2.set_title("MMD between z angular moment of data and of GM")
 ax2.plot(names,mmd_momz_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/Momz_hull.pdf")
 
 fig2,ax2=plt.subplots()
 fig2,ax2=plt.subplots()
 ax2.set_title("Rec error between data and GM")
 ax2.plot(names,rec_error_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/rec_hull.pdf")
 styles=['bo','gv','r.','y,']
 
@@ -152,6 +161,7 @@ styles=['bo','gv','r.','y,']
 fig2,ax2=plt.subplots()
 ax2.set_title("Variance")
 ax2.plot(["data"]+names,var_tot)
+ax2.grid(True,which='both')
 fig2.savefig("./plots/var_hull.pdf")
 
 
@@ -173,7 +183,7 @@ ax2.set_title("ROM pressure train error")
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_p_tot[:,j],label=approximations[j])
 
-    
+ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/train_pressure_hull.pdf")
 
@@ -184,7 +194,7 @@ ax2.set_title("ROM pressure test error")
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,test_p_tot[:,j],label=approximations[j])
 
-    
+ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/test_pressure_hull.pdf")
 
@@ -196,7 +206,7 @@ ax2.set_title("ROM velocity magnitude train error")
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j])
 
-    
+ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/train_velocity_hull.pdf")
 
@@ -208,6 +218,6 @@ for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,test_u_tot[:,j],label=approximations[j])
 
     
-    
+ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/test_velocity_hull.pdf")
