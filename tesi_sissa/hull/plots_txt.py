@@ -36,6 +36,7 @@ var_tot=np.zeros(5)
 mmd_tensor_tot=np.zeros(4)
 mmd_area_tot=np.zeros(4)
 rec_error_tot=np.zeros(4)
+kid_tot=np.zeros(4)
 mmd_drag_tot=np.zeros(4)
 mmd_momz_tot=np.zeros(4)
 
@@ -55,6 +56,7 @@ for i in range(len(names)):
     area_data=np.load("geometrical_quantities/area_data.npy")
     area_sampled=np.load("geometrical_quantities/area_"+name+".npy")
     error=np.load("nn_quantities/rel_error_"+name+".npy")
+    kid=np.load("nn_quantities/kid_"+name+".npy")
     drag_data=np.load("physical_quantities/drag_data.npy").reshape(-1)
     drag_sampled=np.load("physical_quantities/drag_"+name+".npy").reshape(-1)
     momz_data=np.load("physical_quantities/momz_data.npy").reshape(-1)
@@ -71,6 +73,7 @@ for i in range(len(names)):
     mmd_tensor_tot[i]=mmd(moment_tensor_data.reshape(-1,np.prod(moment_tensor_data.shape[1:])),moment_tensor_sampled.reshape(-1,np.prod(moment_tensor_data.shape[1:])))
     var_tot[i+1]=variance.item()
     rec_error_tot[i]=error.item()
+    kid_tot[i]=kid
     mmd_drag_tot[i]=mmd(drag_data,drag_sampled)
     mmd_momz_tot[i]=mmd(momz_data,momz_sampled)
 
@@ -147,7 +150,6 @@ ax2.grid(True,which='both')
 fig2.savefig("./plots/Momz_hull.pdf")
 
 fig2,ax2=plt.subplots()
-fig2,ax2=plt.subplots()
 ax2.set_title("Rec error between data and GM")
 ax2.plot(names,rec_error_tot)
 ax2.grid(True,which='both')
@@ -155,6 +157,11 @@ fig2.savefig("./plots/rec_hull.pdf")
 styles=['bo','gv','r.','y,']
 
 
+fig2,ax2=plt.subplots()
+ax2.set_title("Kid between data and GM")
+ax2.plot(names,kid_tot)
+ax2.grid(True,which='both')
+fig2.savefig("./plots/kid_hull.pdf")
 
 
 
