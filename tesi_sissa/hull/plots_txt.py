@@ -85,7 +85,6 @@ for i in range(len(names)):
         test_p_tot[i+1,j]=test_error_rom_sampled[0,j]
         train_p_tot[5,j]=train_error_rom_as[0,j]
         test_p_tot[5,j]=test_error_rom_as[0,j]
-
         train_u_tot[0,j]=train_error_rom_data[1,j]
         test_u_tot[0,j]=test_error_rom_data[1,j]
         train_u_tot[i+1,j]=train_error_rom_sampled[1,j]
@@ -94,19 +93,23 @@ for i in range(len(names)):
         test_u_tot[5,j]=test_error_rom_as[1,j]
     fig2,ax2=plt.subplots()
     ax2.set_title("Area of "+name)
-    _=ax2.hist([area_data,area_sampled],8,label=['real','sampled'])
+    _=ax2.hist(area_data,8,label='real',histtype='step',linestyle='solid',density=True)
+    _=ax2.hist(area_sampled,8,label='sampled',histtype='step',linestyle='dotted',density=True)
+
     ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Area_hist_"+name+"_hull.pdf")
     fig2,ax2=plt.subplots()
     ax2.set_title("Drag of "+name)
-    _=ax2.hist([drag_data,drag_sampled],8,label=['real','sampled'])
+    _=ax2.hist(drag_data,8,label='real',histtype='step',linestyle='solid',density=True)
+    _=ax2.hist(drag_sampled,8,label='sampled',histtype='step',linestyle='dotted',density=True)
     ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Drag_hist_"+name+"_hull.pdf")
     fig2,ax2=plt.subplots()
     ax2.set_title("Z angular moment of "+name)
-    _=ax2.hist([momz_data,momz_sampled],8,label=['real','sampled'])
+    _=ax2.hist(momz_data,8,label='real',histtype='step',linestyle='solid',density=True)
+    _=ax2.hist(momz_sampled,8,label='sampled',histtype='step',linestyle='dotted',density=True)
     ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Momz_hist_"+name+"_hull.pdf")
@@ -158,7 +161,7 @@ styles=['bo','gv','r.','y,']
 
 
 fig2,ax2=plt.subplots()
-ax2.set_title("Kid between data and GM")
+ax2.set_title("KID between data and GM")
 ax2.plot(names,kid_tot)
 ax2.grid(True,which='both')
 fig2.savefig("./plots/kid_hull.pdf")
@@ -186,9 +189,10 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM pressure train error")
 
 
+style=['solid','dotted']
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,train_p_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_p_tot[:,j],label=approximations[j],linestyle=style[j])
 
 ax2.grid(True,which='both')
 ax2.legend()
@@ -199,7 +203,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM pressure test error")
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,test_p_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_p_tot[:,j],label=approximations[j],linestyle=style[j])
 
 ax2.grid(True,which='both')
 ax2.legend()
@@ -209,9 +213,10 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM velocity magnitude train error")
 
 
+style=['solid','dotted']
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j],linestyle=style[j])
 
 ax2.grid(True,which='both')
 ax2.legend()
@@ -222,7 +227,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM velocity magnitude test error")
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,test_u_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_u_tot[:,j],label=approximations[j],linestyle=style[j])
 
     
 ax2.grid(True,which='both')

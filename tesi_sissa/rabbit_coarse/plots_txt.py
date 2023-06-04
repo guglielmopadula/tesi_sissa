@@ -36,6 +36,7 @@ var_tot=np.zeros(8)
 mmd_tensor_tot=np.zeros(7)
 mmd_area_tot=np.zeros(7)
 rec_error_tot=np.zeros(7)
+kid_tot=np.zeros(7)
 mmd_energy_tot=np.zeros(7)
 
 train_energy_tot=np.zeros((9,2))
@@ -45,6 +46,7 @@ test_energy_tot=np.zeros((9,2))
 
 for i in range(len(names)):
     name=names[i]
+    kid=np.load("nn_quantities/kid_"+name+".npy")
     moment_tensor_data=np.load("geometrical_quantities/moment_tensor_data.npy")
     moment_tensor_sampled=np.load("geometrical_quantities/moment_tensor_"+name+".npy")
     variance=np.load("nn_quantities/variance_"+name+".npy")
@@ -65,6 +67,7 @@ for i in range(len(names)):
     mmd_tensor_tot[i]=mmd(moment_tensor_data.reshape(-1,np.prod(moment_tensor_data.shape[1:])),moment_tensor_sampled.reshape(-1,np.prod(moment_tensor_data.shape[1:])))
     var_tot[i+1]=variance.item()
     rec_error_tot[i]=error.item()
+    kid_tot[i]=kid
     mmd_energy_tot[i]=mmd(energy_data,energy_sampled)
     mmd_area_tot[i]=mmd(area_data,area_sampled)
     for j in range(len(approximations)):
@@ -80,13 +83,15 @@ for i in range(len(names)):
 
     fig2,ax2=plt.subplots()
     ax2.set_title("Area of "+name)
-    _=ax2.hist([area_data,area_sampled],8,label=['real','sampled'])
+    _=ax2.hist(area_data,8,label='real',histtype='step',linestyle='solid',density=True)
+    _=ax2.hist(area_sampled,8,label='sampled',histtype='step',linestyle='dotted',density=True)
     ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Area_hist_"+name+"_coarse.pdf")
     fig2,ax2=plt.subplots()
     ax2.set_title("Energy of "+name)
-    _=ax2.hist([energy_data,energy_sampled],8,label=['real','sampled'])
+    _=ax2.hist(energy_data,8,label='real',histtype='step',linestyle='solid',density=True)
+    _=ax2.hist(energy_sampled,8,label='sampled',histtype='step',linestyle='dotted',density=True)
     ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Energy_hist_"+name+"_coarse.pdf")
@@ -130,6 +135,12 @@ fig2.savefig("./plots/rec_coarse.pdf")
 styles=['bo','gv','r.','y,']
 
 
+fig2,ax2=plt.subplots()
+ax2.set_title("KID between data and GM")
+ax2.plot(names,kid_tot)
+ax2.grid(True,which='both')
+fig2.savefig("./plots/kid_coarse.pdf")
+
 
 
 
@@ -163,9 +174,10 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy train error")
 
 
+style=['solid','dotted']
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j],linestyle=style[j])
 ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/train_energy_coarse.pdf")
@@ -175,7 +187,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy test error")
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,test_energy_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_energy_tot[:,j],label=approximations[j],linestyle=style[j])
 ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/test_energy_coarse.pdf")

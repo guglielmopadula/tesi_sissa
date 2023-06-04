@@ -36,7 +36,7 @@ var_tot=np.zeros(5)
 mmd_tensor_tot=np.zeros(4)
 rec_error_tot=np.zeros(4)
 mmd_energy_tot=np.zeros(4)
-
+kid_tot=np.zeros(4)
 train_energy_tot=np.zeros((6,2))
 test_energy_tot=np.zeros((6,2))
 
@@ -47,6 +47,7 @@ for i in range(len(names)):
     moment_tensor_data=np.load("geometrical_quantities/moment_tensor_data.npy")
     moment_tensor_sampled=np.load("geometrical_quantities/moment_tensor_"+name+".npy")
     variance=np.load("nn_quantities/variance_"+name+".npy")
+    kid=np.load("nn_quantities/kid_"+name+".npy")
     variance_data=np.load("nn_quantities/variance_data.npy")
     error=np.load("nn_quantities/rel_error_"+name+".npy")
     energy_data=np.load("physical_quantities/energy_surf_data.npy").reshape(-1)
@@ -63,6 +64,8 @@ for i in range(len(names)):
     var_tot[i+1]=variance.item()
     rec_error_tot[i]=error.item()
     mmd_energy_tot[i]=mmd(energy_data,energy_sampled)
+    kid_tot[i]=kid
+
 
     for j in range(len(approximations)):
         train_energy_tot[0,j]=train_error_rom_data[0,j]
@@ -77,7 +80,8 @@ for i in range(len(names)):
 
     fig2,ax2=plt.subplots()
     ax2.set_title("Energy on surface of "+name)
-    _=ax2.hist([energy_data,energy_sampled],8,label=['real','sampled'])
+    _=ax2.hist(energy_data,8,label='real',histtype='step',linestyle='solid',density=True)
+    _=ax2.hist(energy_sampled,8,label='sampled',histtype='step',linestyle='dotted',density=True)
     ax2.grid(True,which='both')
     ax2.legend()
     fig2.savefig("./plots/Energy_surf_hist_"+name+"_fined.pdf")
@@ -117,6 +121,14 @@ fig2.savefig("./plots/rec_fined.pdf")
 styles=['bo','gv','r.','y,']
 
 
+fig2,ax2=plt.subplots()
+ax2.set_title("KID between data and GM")
+ax2.plot(names,kid_tot)
+ax2.grid(True,which='both')
+fig2.savefig("./plots/kid_fined.pdf")
+
+
+
 
 
 
@@ -149,10 +161,11 @@ ax2.set_title("ROM u test error")
 fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy on surf train error")
 
+style=['solid','dotted']
 
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j],linestyle=style[j])
 ax2.grid(True,which='both')
 ax2.legend()
 fig2.savefig("./plots/train_energy_surf_fined.pdf")
@@ -162,7 +175,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy on surf test error")
 
 for j in range(len(approximations)):
-    ax2.semilogy(["data"]+names,test_energy_tot[:,j],label=approximations[j])
+    ax2.semilogy(["data"]+names,test_energy_tot[:,j],label=approximations[j],linestyle=style[j])
 ax2.grid(True,which='both') 
 ax2.legend()
 fig2.savefig("./plots/test_energy_surf_fined.pdf")
