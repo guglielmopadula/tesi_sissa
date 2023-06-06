@@ -1,5 +1,6 @@
 
 from ezyrb import Database,RBF, GPR, KNeighborsRegressor, RadiusNeighborsRegressor, Linear, ANN, ReducedOrderModel, POD, AE, PODAE
+from sklearn.decomposition import PCA
 import torch
 import torch.nn as nn
 import numpy as np
@@ -35,6 +36,22 @@ class L2_torch(nn.Module):
         return torch.linalg.norm(tmp)
 
 
+class AdvancedRBF():
+    
+    def fit(self,x,y):
+        self.pca=PCA()
+        self.pca.fit(x)
+        self.reduced_dim=np.argmin(np.linalg.norm(self.pca.explained_variance_-0.999))+1
+        self.pca=PCA(n_components=self.reduced_dim)
+        self.pca.fit(x)
+        x=self.pca.transform(x)
+        self.rbf=RBF()
+        self.rbf.fit(x,y)
+    
+    def predict(self,x):
+        x=self.pca.transform(x)
+        y=self.rbf.predict(x)
+        return y
 
 
     
@@ -98,11 +115,12 @@ test={"p":[parameters_test,snapshot_1_test], "u":[parameters_test,snapshot_2_tes
 approximations = {
     'GPR': GPR(),
     'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
+    'RBF': AdvancedRBF()
 }
 
 
-train_error=np.zeros((2,2))
-test_error=np.zeros((2,2))
+train_error=np.zeros((2,3))
+test_error=np.zeros((2,3))
 
 for approxname, approxclass in approximations.items():
     loss=L2_torch(V,R_1)
@@ -116,6 +134,8 @@ for approxname, approxclass in approximations.items():
 approximations = {
     'GPR': GPR(),
     'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
+    'RBF': AdvancedRBF()
+
 }
 
 

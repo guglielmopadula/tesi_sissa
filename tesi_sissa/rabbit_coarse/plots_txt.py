@@ -22,7 +22,8 @@ names=["AE","VAE","AAE","BEGAN","EBM","DM","NF"]
 db_t=["u","energy"]
 approximations =  [
     'GPR',
-    'ANN'
+    'ANN',
+    'RBF'
 ]
 
 plt.rcParams.update({
@@ -39,8 +40,8 @@ rec_error_tot=np.zeros(7)
 kid_tot=np.zeros(7)
 mmd_energy_tot=np.zeros(7)
 
-train_energy_tot=np.zeros((9,2))
-test_energy_tot=np.zeros((9,2))
+train_energy_tot=np.zeros((9,3))
+test_energy_tot=np.zeros((9,3))
 
 
 
@@ -174,7 +175,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy train error")
 
 
-style=['solid','dotted']
+style=['solid','dotted','dashed']
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_energy_tot[:,j],label=approximations[j],linestyle=style[j])

@@ -23,6 +23,7 @@ db_t=["u","energy"]
 approximations =  [
     'GPR',
     'ANN',
+    'RBF'
 ]
 
 plt.rcParams.update({
@@ -40,11 +41,11 @@ kid_tot=np.zeros(4)
 mmd_drag_tot=np.zeros(4)
 mmd_momz_tot=np.zeros(4)
 
-train_u_tot=np.zeros((6,2))
-test_u_tot=np.zeros((6,2))
+train_u_tot=np.zeros((6,3))
+test_u_tot=np.zeros((6,3))
 
-train_p_tot=np.zeros((6,2))
-test_p_tot=np.zeros((6,2))
+train_p_tot=np.zeros((6,3))
+test_p_tot=np.zeros((6,3))
 
 
 for i in range(len(names)):
@@ -189,7 +190,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM pressure train error")
 
 
-style=['solid','dotted']
+style=['solid','dotted','dashed']
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_p_tot[:,j],label=approximations[j],linestyle=style[j])
@@ -213,7 +214,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM velocity magnitude train error")
 
 
-style=['solid','dotted']
+style=['solid','dotted','dashed']
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j],linestyle=style[j])

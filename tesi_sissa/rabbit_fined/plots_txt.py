@@ -22,7 +22,8 @@ names=["AE","VAE","AAE","BEGAN"]
 db_t=["u","energy"]
 approximations =  [
     'GPR',
-    'ANN'
+    'ANN',
+    'RBF'
 ]
 
 plt.rcParams.update({
@@ -37,8 +38,8 @@ mmd_tensor_tot=np.zeros(4)
 rec_error_tot=np.zeros(4)
 mmd_energy_tot=np.zeros(4)
 kid_tot=np.zeros(4)
-train_energy_tot=np.zeros((6,2))
-test_energy_tot=np.zeros((6,2))
+train_energy_tot=np.zeros((6,3))
+test_energy_tot=np.zeros((6,3))
 
 
 
@@ -161,7 +162,7 @@ ax2.set_title("ROM u test error")
 fig2,ax2=plt.subplots()
 ax2.set_title("ROM energy on surf train error")
 
-style=['solid','dotted']
+style=['solid','dotted','dashed']
 
 
 for j in range(len(approximations)):

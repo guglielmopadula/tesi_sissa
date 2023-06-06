@@ -18,6 +18,24 @@ names=["VAE",
        "data"
        ]
 
+class AdvancedRBF():
+    
+    def fit(self,x,y):
+        self.pca=PCA()
+        self.pca.fit(x)
+        self.reduced_dim=np.argmin(np.linalg.norm(self.pca.explained_variance_-0.999))+1
+        self.pca=PCA(n_components=self.reduced_dim)
+        self.pca.fit(x)
+        x=self.pca.transform(x)
+        self.rbf=RBF()
+        self.rbf.fit(x,y)
+    
+    def predict(self,x):
+        x=self.pca.transform(x)
+        y=self.rbf.predict(x)
+        return y
+
+
 NUM_SAMPLES=300
 NUM_TRAIN_SAMPLES=250
 for name in names:
@@ -56,11 +74,12 @@ for name in names:
     approximations = {
         'GPR': GPR(),
         'ANN': ANN([2000, 2000], nn.Tanh(), 1000,l2_regularization=0.03,lr=0.001),
+        'RBF': AdvancedRBF()
     }
 
 
-    train_error=np.zeros((1,2))
-    test_error=np.zeros((1,2))
+    train_error=np.zeros((1,3))
+    test_error=np.zeros((1,3))
 
     for approxname, approxclass in approximations.items():
         j=list(approximations.keys()).index(approxname)
