@@ -77,9 +77,15 @@ class DEIM():
         pca=PCA()
         pca.fit(y)
         self.q=pca.components_
-        
-            
+        for i in range(self.max_points):
+            self.nq=np.delete(self.q,i,axis=0)
+            tmp,_,_,_=np.linalg.lstsq(self.nq.T,self.q[i])
+            self.q[i]=self.q[i]-self.nq.T@tmp
+            self.q[i]=self.q[i]/np.max(np.abs(self.q[i]))
+
         A=self.q.T
+        print(A.shape)
+
         alpha=np.zeros((x.shape[0],self.max_points))
         for i in range(len(y)):
             alpha[i],_,_,_=np.linalg.lstsq(A,y[i])
@@ -194,10 +200,10 @@ test={"p":[parameters_test,snapshot_1_test], "u":[parameters_test,snapshot_2_tes
 
 
 approximations = {
-    'GPR': GPR(),
-    'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
-    'RBF': AdvancedRBF(),
-    'EIM': EIM(3),
+    #'GPR': GPR(),
+    #'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
+    #'RBF': AdvancedRBF(),
+    #'EIM': EIM(3),
     'DEIM': DEIM(3),
 }
 
@@ -214,10 +220,10 @@ for approxname, approxclass in approximations.items():
     
 
 approximations = {
-    'GPR': GPR(),
-    'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
-    'RBF': AdvancedRBF(),
-    'EIM': EIM(3),
+    #'GPR': GPR(),
+    #'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
+    #'RBF': AdvancedRBF(),
+    #'EIM': EIM(3),
    'DEIM': DEIM(3),
 }
 
@@ -238,5 +244,5 @@ for i in range(2):
         print("Training error of "+str(approximations_names[j])+" over " + str(db_t[i]) +" is "+str(train_error[i,j]))
         print("Test error of "+str(approximations_names[j])+" over " + str(db_t[i]) +" is "+str(test_error[i,j]))
 
-np.save("./rom_quantities/"+name+"_rom_err_train.npy",train_error)
-np.save("./rom_quantities/"+name+"_rom_err_test.npy",test_error)
+#np.save("./rom_quantities/"+name+"_rom_err_train.npy",train_error)
+#np.save("./rom_quantities/"+name+"_rom_err_test.npy",test_error)
