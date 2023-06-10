@@ -215,7 +215,7 @@ fig2,ax2=plt.subplots()
 ax2.set_title("ROM velocity magnitude train error")
 
 
-style=['solid','--','dashed','dashdot','dotted']
+style=['solid','dotted','dashed','dashdot','dotted']
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j],linestyle=style[j])
