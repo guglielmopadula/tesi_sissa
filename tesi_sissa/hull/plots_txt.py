@@ -23,9 +23,8 @@ db_t=["u","energy"]
 approximations =  [
     'GPR',
     'ANN',
-    'RBR',
-    'Greedy-EIM',
-    'POD-EIM'
+    'RBF',
+    'EIM',
 ]
 
 plt.rcParams.update({

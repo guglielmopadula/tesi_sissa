@@ -67,36 +67,45 @@ class DEIM():
     def __init__(self,max_points=None):
         self.max_points=max_points
 
-    def fit(self,x,y,max_points=None):
+    def fit(self,x,y):
         if self.max_points==None:
             self.max_points=len(y)
-            
         self.indices_mu=np.zeros(self.max_points,dtype=np.int32)
         self.indices_x=np.zeros(self.max_points,dtype=np.int32)
         self.indices_mu[0]=0
-        pca=PCA()
-        pca.fit(y)
-        self.q=pca.components_
-        for i in range(self.max_points):
-            self.nq=np.delete(self.q,i,axis=0)
-            tmp,_,_,_=np.linalg.lstsq(self.nq.T,self.q[i])
-            self.q[i]=self.q[i]-self.nq.T@tmp
-            self.q[i]=self.q[i]/np.max(np.abs(self.q[i]))
+        index=0
+        self.q=np.zeros((self.max_points,y.shape[1]))
+        err=y[self.indices_mu[index]]
+        self.indices_x[index]=np.argmax(np.abs(err))
+        _,_,y_train=randomized_svd(y,n_components=3)
+
+        for i in trange(self.max_points):
+            self.q[index]=err/err[self.indices_x[index]]
+            if i!=self.max_points-1:
+                res_indices=np.array(list(set(range(self.max_points)).difference(set(self.indices_mu))))
+                res=np.zeros(len(res_indices))
+                A=self.q[:index].T
+                for i in np.arange(len(res_indices)):
+                    alpha,_,_,_=np.linalg.lstsq(A,y_train[res_indices[i]])
+                    res[i]=np.linalg.norm(A@alpha-y_train[res_indices[i]])
+                index=index+1
+                self.indices_mu[index]=res_indices[np.argmax(res)]
+                alpha,_,_,_=np.linalg.lstsq(A,y_train[self.indices_mu[index]])
+                err=y[self.indices_mu[index]]-A@alpha
+                x_indices=np.array(list(set(range(self.max_points)).difference(set(self.indices_x))))
+                self.indices_x[index]=x_indices[np.argmax(np.abs(err[x_indices]))]
 
         A=self.q.T
-        print(A.shape)
-
-        alpha=np.zeros((x.shape[0],self.max_points))
-        for i in range(len(y)):
+        alpha=np.zeros((self.max_points,self.max_points))
+        for i in range(self.max_points):
             alpha[i],_,_,_=np.linalg.lstsq(A,y[i])
+
         self.rbf=AdvancedRBF()
-        self.rbf.fit(x,alpha)
+        self.rbf.fit(x[self.indices_x],alpha)
 
     def predict(self,mu):
         return self.rbf.predict(mu).dot(self.q)
     
-
-
 
 V=np.load("physical_quantities/VD.npy").astype(np.float32)
 
@@ -211,7 +220,7 @@ approximations = {
 
 for approxname, approxclass in approximations.items():
     loss=L2_torch(V,R_1)
-    j=list(approximations.keys()).index(approxname)
+    j=list(approximations_names).index(approxname)
     approxclass.fit(train["p"][0],train["p"][1])
     print(j)
     train_error[0,j]=np.mean(l2_norm(approxclass.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1],R_1,V)/l2_norm(train["p"][1],R_1,V))
@@ -230,7 +239,7 @@ approximations = {
 
 for approxname, approxclass in approximations.items():
     approxclass.fit(train["u"][0],train["u"][1])
-    j=list(approximations.keys()).index(approxname)
+    j=list(approximations_names).index(approxname)
     print(j)
     train_error[1,j]=np.mean(l2_norm(approxclass.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1],R_2,V)/l2_norm(train["u"][1],R_2,V))
     test_error[1,j]=np.mean(l2_norm(approxclass.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1],R_2,V)/l2_norm(test["u"][1],R_2,V))
