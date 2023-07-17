@@ -51,12 +51,12 @@ class EIM():
                 self.indices_x[index]=x_indices[np.argmax(np.abs(err[x_indices]))]
 
         A=self.q.T
-        alpha=np.zeros((self.max_points,self.max_points))
-        for i in range(self.max_points):
+        alpha=np.zeros((len(y),self.max_points))
+        for i in range(len(y)):
             alpha[i],_,_,_=np.linalg.lstsq(A,y[i])
 
         self.rbf=AdvancedRBF()
-        self.rbf.fit(x[self.indices_x],alpha)
+        self.rbf.fit(x,alpha)
 
     def predict(self,mu):
         return self.rbf.predict(mu).dot(self.q)
@@ -77,42 +77,48 @@ class DEIM():
         self.q=np.zeros((self.max_points,y.shape[1]))
         err=y[self.indices_mu[index]]
         self.indices_x[index]=np.argmax(np.abs(err))
-        _,_,y_train=randomized_svd(y,n_components=3)
+        _,_,podbase=randomized_svd(y,n_components=3)
+        podbase=podbase.T
+        n=len(podbase)
+        self.indices_x[0]=np.argmax(np.abs(self.q[0]))
+        P=np.eye(n)[:,self.indices_x[:index+1]]
+        U=podbase[:,:index+1]
+        
+        for i in trange(1,self.max_points):
+            c,_,_,_=np.linalg.lstsq(P.T@U,P.T@podbase[:,index+1])
+            r=podbase[:,index+1]-U@c
+            res_indices=np.array(list(set(range(n)).difference(set(self.indices_x[:index+1]))))
+            index=index+1
+            self.indices_x[index]=res_indices[np.argmax(r[res_indices])]
+            P=np.eye(n)[:,self.indices_x[:index+1]]
+            U=podbase[:,:index+1]
 
-        for i in trange(self.max_points):
-            self.q[index]=err/err[self.indices_x[index]]
-            if i!=self.max_points-1:
-                res_indices=np.array(list(set(range(self.max_points)).difference(set(self.indices_mu))))
-                res=np.zeros(len(res_indices))
-                A=self.q[:index].T
-                for i in np.arange(len(res_indices)):
-                    alpha,_,_,_=np.linalg.lstsq(A,y_train[res_indices[i]])
-                    res[i]=np.linalg.norm(A@alpha-y_train[res_indices[i]])
-                index=index+1
-                self.indices_mu[index]=res_indices[np.argmax(res)]
-                alpha,_,_,_=np.linalg.lstsq(A,y_train[self.indices_mu[index]])
-                err=y[self.indices_mu[index]]-A@alpha
-                x_indices=np.array(list(set(range(self.max_points)).difference(set(self.indices_x))))
-                self.indices_x[index]=x_indices[np.argmax(np.abs(err[x_indices]))]
+        Utot=P.T@U        
+        for i in trange(1,self.max_points):
+            alpha,_,_,_=np.linalg.lstsq(Utot[:,:i],Utot[:,i])
+            Utot[:,i]=(Utot[:,i]-Utot[:,:i]@alpha)/(np.abs(Utot[:,i]-Utot[:,:i]@alpha)[i])
 
-        A=self.q.T
-        alpha=np.zeros((self.max_points,self.max_points))
-        for i in range(self.max_points):
-            alpha[i],_,_,_=np.linalg.lstsq(A,y[i])
 
+        alpha=np.zeros((len(y),self.max_points))
+        for i in range(len(y)):
+            alpha[i],_,_,_=np.linalg.lstsq(Utot,P.T@y[i])
+
+        self.q=(U@(np.linalg.inv(Utot))).T
         self.rbf=AdvancedRBF()
-        self.rbf.fit(x[self.indices_x],alpha)
+        self.rbf.fit(x,alpha)
 
-    def predict(self,mu):
+    def predict(self,mu):   
         return self.rbf.predict(mu).dot(self.q)
     
 
 V=np.load("physical_quantities/VD.npy").astype(np.float32)
 
-def l2_norm(x,R,V):
-    x=x.dot(R)
+def l2_norm(x,V):
     x = V.reshape(1, -1)*x
     return np.linalg.norm(x, axis=1)
+
+def transform(x,R):
+    return x.dot(R)
 
 class L2_torch(nn.Module):
     def __init__(self,V,R):
@@ -170,17 +176,17 @@ parameters=parameters[l,:]
 snapshot_1=snapshot_1[l,:]
 snapshot_2=snapshot_2[l,:]
 
-n_modes=3
+n_modes=100
 
 U_1, S_1, V_1 = randomized_svd(snapshot_1, n_components=n_modes, random_state=0, n_oversamples=1)
 
 R_1=V_1[:n_modes]
-snapshot_1=snapshot_1.dot(R_1.T)
+snapshot_1_red=snapshot_1.dot(R_1.T)
 
 
 U_2, S_2, V_2 = randomized_svd(snapshot_2, n_components=n_modes, random_state=0, n_oversamples=1)
 R_2=V_2[:n_modes]
-snapshot_2=snapshot_2.dot(R_2.T)
+snapshot_2_red=snapshot_2.dot(R_2.T)
 
 print(snapshot_1.dtype)
 
@@ -192,27 +198,28 @@ parameters_train=parameters[train_index]
 parameters_test=parameters[test_index]
 snapshot_1_train=snapshot_1[train_index]
 snapshot_1_test=snapshot_1[test_index]
+snapshot_1_train_red=snapshot_1_red[train_index]
 snapshot_2_train=snapshot_2[train_index]
 snapshot_2_test=snapshot_2[test_index]
+snapshot_2_train_red=snapshot_2_red[train_index]
+
+
 
 approximations_names=["GPR","ANN","RBF","EIM","DEIM"]
 
 
-db1=Database(parameters_train,snapshot_1_train)
-db2=Database(parameters_train,snapshot_2_train)
+db1=Database(parameters_train,snapshot_1_train_red)
+db2=Database(parameters_train,snapshot_2_train_red)
 
 db_t={"p": db1, "u":db2}
 
-train={"p":[parameters_train,snapshot_1_train],"u":[parameters_train,snapshot_2_train] }
+train_red={"p":[parameters_train,snapshot_1_train_red],"u":[parameters_train,snapshot_2_train_red] }
 test={"p":[parameters_test,snapshot_1_test], "u":[parameters_test,snapshot_2_test] }
-
+train={"p":[parameters_train,snapshot_1_train],"u":[parameters_train,snapshot_2_train] }
 
 
 approximations = {
-    #'GPR': GPR(),
-    #'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
-    #'RBF': AdvancedRBF(),
-    #'EIM': EIM(3),
+    'EIM': EIM(3),
     'DEIM': DEIM(3),
 }
 
@@ -221,28 +228,26 @@ approximations = {
 for approxname, approxclass in approximations.items():
     loss=L2_torch(V,R_1)
     j=list(approximations_names).index(approxname)
-    approxclass.fit(train["p"][0],train["p"][1])
+    approxclass.fit(train_red["p"][0],train_red["p"][1])
     print(j)
-    train_error[0,j]=np.mean(l2_norm(approxclass.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["p"][1],R_1,V)/l2_norm(train["p"][1],R_1,V))
-    test_error[0,j]=np.mean(l2_norm(approxclass.predict(test["p"][0]).reshape(NUM_TEST,-1)-test["p"][1],R_1,V)/l2_norm(test["p"][1],R_1,V))
+    train_error[0,j]=np.mean(l2_norm(transform(approxclass.predict(train["p"][0]).reshape(NUM_TRAIN_SAMPLES,-1),R_1)-train["p"][1],V)/l2_norm(train["p"][1],V))
+    test_error[0,j]=np.mean(l2_norm(transform(approxclass.predict(test["p"][0]).reshape(NUM_TEST,-1),R_1)-test["p"][1],V)/l2_norm(test["p"][1],V))
 
     
 
 approximations = {
-    #'GPR': GPR(),
-    #'ANN': ANN([2000, 2000], nn.Tanh(), 5000,l2_regularization=0.00,lr=0.01, frequency_print=1000),
-    #'RBF': AdvancedRBF(),
-    #'EIM': EIM(3),
+    'EIM': EIM(3),
    'DEIM': DEIM(3),
 }
 
 
 for approxname, approxclass in approximations.items():
-    approxclass.fit(train["u"][0],train["u"][1])
+    approxclass.fit(train_red["u"][0],train_red["u"][1])
     j=list(approximations_names).index(approxname)
     print(j)
-    train_error[1,j]=np.mean(l2_norm(approxclass.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1)-train["u"][1],R_2,V)/l2_norm(train["u"][1],R_2,V))
-    test_error[1,j]=np.mean(l2_norm(approxclass.predict(test["u"][0]).reshape(NUM_TEST,-1)-test["u"][1],R_2,V)/l2_norm(test["u"][1],R_2,V))
+    train_error[1,j]=np.mean(l2_norm(transform(approxclass.predict(train["u"][0]).reshape(NUM_TRAIN_SAMPLES,-1),R_2)-train["u"][1],V)/l2_norm(train["u"][1],V))
+    test_error[1,j]=np.mean(l2_norm(transform(approxclass.predict(test["u"][0]).reshape(NUM_TEST,-1),R_2)-test["u"][1],V)/l2_norm(test["u"][1],V))
+
 
  
 
@@ -253,5 +258,5 @@ for i in range(2):
         print("Training error of "+str(approximations_names[j])+" over " + str(db_t[i]) +" is "+str(train_error[i,j]))
         print("Test error of "+str(approximations_names[j])+" over " + str(db_t[i]) +" is "+str(test_error[i,j]))
 
-#np.save("./rom_quantities/"+name+"_rom_err_train.npy",train_error)
-#np.save("./rom_quantities/"+name+"_rom_err_test.npy",test_error)
+np.save("./rom_quantities/"+name+"_rom_err_train.npy",train_error)
+np.save("./rom_quantities/"+name+"_rom_err_test.npy",test_error)

@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 import torch
 import gpytorch
 
-def get_kernel():
+def get_kernel(m=1):
     s=gpytorch.kernels.RBFKernel()
     l=[1,2,5,10,20]
     for i in l:
         tmp=gpytorch.kernels.RBFKernel()
-        tmp.lengthscale=i
+        tmp.lengthscale=i*(m**0.5)
         s=s+tmp
     return s
 
@@ -18,13 +18,24 @@ def mmd(X,Y):
     Y=Y.reshape(Y.shape[0],-1)
     return np.mean(s(torch.tensor(X),torch.tensor(X)).to_dense().detach().numpy())+np.mean(s(torch.tensor(Y),torch.tensor(Y)).to_dense().detach().numpy())-2*np.mean(s(torch.tensor(X),torch.tensor(Y)).to_dense().detach().numpy())
 
+
+def relmmd(X,Y):
+    X=X.reshape(X.shape[0],-1)
+    Y=Y.reshape(Y.shape[0],-1)
+    Z=np.concatenate((X,Y))
+    s=get_kernel(X.shape[1])
+    X=(X-np.min(Z,axis=0))/(np.max(Z,axis=0)-np.min(Z,axis=0))
+    Y=(Y-np.min(Y,axis=0))/(np.max(Z,axis=0)-np.min(Z,axis=0))
+    return (np.mean(s(torch.tensor(X),torch.tensor(X)).to_dense().detach().numpy())+np.mean(s(torch.tensor(Y),torch.tensor(Y)).to_dense().detach().numpy())-2*np.mean(s(torch.tensor(X),torch.tensor(Y)).to_dense().detach().numpy()))/np.mean(s(torch.tensor(X),torch.tensor(X)).to_dense().detach().numpy())
+
 names=["AE","VAE","AAE","BEGAN"]
 db_t=["u","energy"]
 approximations =  [
-    'GPR',
-    'ANN',
-    'RBF',
-    'EIM',
+    'POD-GPR',
+    'POD-ANN',
+    'POD-RBF',
+    #'EIM',
+    #'DEIM',
 ]
 
 plt.rcParams.update({
@@ -72,14 +83,14 @@ for i in range(len(names)):
     test_error_rom_as=np.load("./rom_quantities/AS_rom_err_test.npy")
 
     var_tot[0]=variance_data.item()
-    mmd_tensor_tot[i]=mmd(moment_tensor_data.reshape(-1,np.prod(moment_tensor_data.shape[1:])),moment_tensor_sampled.reshape(-1,np.prod(moment_tensor_data.shape[1:])))
+    mmd_tensor_tot[i]=relmmd(moment_tensor_data.reshape(-1,np.prod(moment_tensor_data.shape[1:])),moment_tensor_sampled.reshape(-1,np.prod(moment_tensor_data.shape[1:])))
     var_tot[i+1]=variance.item()
     rec_error_tot[i]=error.item()
     kid_tot[i]=kid
-    mmd_drag_tot[i]=mmd(drag_data,drag_sampled)
-    mmd_momz_tot[i]=mmd(momz_data,momz_sampled)
+    mmd_drag_tot[i]=relmmd(drag_data,drag_sampled)
+    mmd_momz_tot[i]=relmmd(momz_data,momz_sampled)
 
-    mmd_area_tot[i]=mmd(area_data,area_sampled)
+    mmd_area_tot[i]=relmmd(area_data,area_sampled)
     for j in range(len(approximations)):
         train_p_tot[0,j]=train_error_rom_data[0,j]
         test_p_tot[0,j]=test_error_rom_data[0,j]
@@ -132,24 +143,24 @@ plt.rcParams.update({
 
 #Geometrical quantities
 fig2,ax2=plt.subplots()
-ax2.set_title("MMD between moment tensor of data and of GM")
+ax2.set_title("RelMMD between moment tensor of data and of GM")
 ax2.plot(names,mmd_tensor_tot)
 ax2.grid(True,which='both')
 fig2.savefig("./plots/Moment_hull.pdf")
 fig2,ax2=plt.subplots()
 ax2.grid(True,which='both')
-ax2.set_title("MMD between area of data and of GM")
+ax2.set_title("RelMMD between area of data and of GM")
 ax2.plot(names,mmd_area_tot)
 ax2.grid(True,which='both')
 fig2.savefig("./plots/Area_hull.pdf")
 #Physical quantities
 fig2,ax2=plt.subplots()
-ax2.set_title("MMD between drag of data and of GM")
+ax2.set_title("RelMMD between drag of data and of GM")
 ax2.plot(names,mmd_drag_tot)
 ax2.grid(True,which='both')
 fig2.savefig("./plots/Drag_hull.pdf")
 fig2,ax2=plt.subplots()
-ax2.set_title("MMD between z angular moment of data and of GM")
+ax2.set_title("RelMMD between z angular moment of data and of GM")
 ax2.plot(names,mmd_momz_tot)
 ax2.grid(True,which='both')
 fig2.savefig("./plots/Momz_hull.pdf")
@@ -214,8 +225,6 @@ fig2.savefig("./plots/test_pressure_hull.pdf")
 fig2,ax2=plt.subplots()
 ax2.set_title("ROM velocity magnitude train error")
 
-
-style=['solid','dotted','dashed','dashdot','dotted']
 
 for j in range(len(approximations)):
     ax2.semilogy(["data"]+names,train_u_tot[:,j],label=approximations[j],linestyle=style[j])
