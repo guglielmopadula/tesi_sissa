@@ -8,12 +8,12 @@ from tqdm import trange
 np.random.seed(0)
 from sklearn.utils.extmath import randomized_svd
 import sys
-names=["VAE",
-       "AAE",
-       "AE",
-       "BEGAN",
+names=[#"VAE",
+       #"AAE",
+       #"AE",
+       #"BEGAN",
        "AS",
-       "data"
+       #"data"
        ]
 
 

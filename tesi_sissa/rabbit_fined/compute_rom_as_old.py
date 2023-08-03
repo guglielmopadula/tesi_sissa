@@ -12,7 +12,6 @@ names=["VAE",
        "AAE",
        "AE",
        "BEGAN",
-       "AS",
        "data",
        ]
 
@@ -38,7 +37,7 @@ NUM_SAMPLES=200
 NUM_TRAIN_SAMPLES=150
 for name in names:
     np.random.seed(0)
-    parameters=np.load("latent_variables/"+name+"_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
+    parameters=np.load("latent_variables/"+name+"_AS_latent.npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
     snapshot_1=np.load("physical_quantities/energy_surf_"+name+".npy")[:NUM_SAMPLES].reshape(NUM_SAMPLES,-1)
     l=[]
     for i in range(NUM_SAMPLES):
@@ -95,5 +94,5 @@ for name in names:
             print("Training error of "+str(approximations[j])+" over " + str(db_t[i]) +" is "+str(train_error[i,j]))
             print("Test error of "+str(approximations[j])+" over " + str(db_t[i]) +" is "+str(test_error[i,j]))
 
-    np.save("./rom_quantities/"+name+"_rom_err_train.npy",train_error)
-    np.save("./rom_quantities/"+name+"_rom_err_test.npy",test_error)
+    np.save("./rom_quantities/"+name+"_AS_rom_err_train.npy",train_error)
+    np.save("./rom_quantities/"+name+"_AS_rom_err_test.npy",test_error)
